@@ -165,6 +165,25 @@ func (h *ManageHandler) UpdateSiteNotice(c *gin.Context) {
 	dto.SuccessOnlyMsg("公告配置更新成功", c)
 }
 
+// SiteTVBoxConfig 获取 TVBox 一键配置输出定制
+func (h *ManageHandler) SiteTVBoxConfig(c *gin.Context) {
+	dto.Success(service.ManageSvc.GetSiteTVBoxConfig(), "TVBox 配置获取成功", c)
+}
+
+// UpdateSiteTVBox 更新 TVBox 一键配置输出定制
+func (h *ManageHandler) UpdateSiteTVBox(c *gin.Context) {
+	var tvbox model.TVBoxConfig
+	if err := c.ShouldBindJSON(&tvbox); err != nil {
+		dto.Failed(fmt.Sprint("请求参数异常: ", err), c)
+		return
+	}
+	if err := service.ManageSvc.UpdateSiteTVBoxConfig(tvbox); err != nil {
+		dto.Failed(fmt.Sprint("TVBox 配置更新失败: ", err), c)
+		return
+	}
+	dto.SuccessOnlyMsg("TVBox 配置更新成功", c)
+}
+
 // ------------------------------------------------------ 配置备份导入/导出 ------------------------------------------------------
 
 // ExportConfigBackup 导出站点配置备份（不含影视库存与账号，仅超级管理员）

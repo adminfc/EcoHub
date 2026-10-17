@@ -68,12 +68,14 @@ func SaveSiteBasic(c model.BasicConfig) error {
 	c.SiteURL = NormalizeSiteURL(c.SiteURL)
 	c.Tip = model.NormalizeTipConfig(c.Tip)
 	c.Notice = model.NormalizeNoticeConfig(c.Notice)
+	c.TVBox = model.NormalizeTVBoxConfig(c.TVBox)
 	rec := model.SiteConfigRecord{
 		SiteName: c.SiteName, SiteURL: c.SiteURL, Logo: c.Logo,
 		Keyword: c.Keyword, Describe: c.Describe, State: c.State, Hint: c.Hint,
 		PrivateAccess: c.PrivateAccess, ProvideKey: strings.TrimSpace(c.ProvideKey),
 		TipJSON:    model.EncodeTipJSON(c.Tip),
 		NoticeJSON: model.EncodeNoticeJSON(c.Notice),
+		TVBoxJSON:  model.EncodeTVBoxJSON(c.TVBox),
 	}
 	if err := db.Mdb.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&model.SiteConfigRecord{}).Error; err != nil {
@@ -105,6 +107,7 @@ func GetSiteBasic() model.BasicConfig {
 				c.SiteURL = NormalizeSiteURL(c.SiteURL)
 				c.Tip = model.NormalizeTipConfig(c.Tip)
 				c.Notice = model.NormalizeNoticeConfig(c.Notice)
+				c.TVBox = model.NormalizeTVBoxConfig(c.TVBox)
 				return c
 			}
 			log.Println("GetSiteBasic Redis Unmarshal Error")
@@ -115,6 +118,7 @@ func GetSiteBasic() model.BasicConfig {
 	if db.Mdb == nil {
 		c.Tip = model.DefaultTipConfig()
 		c.Notice = model.DefaultNoticeConfig()
+		c.TVBox = model.DefaultTVBoxConfig()
 		return c
 	}
 	var rec model.SiteConfigRecord
@@ -122,6 +126,7 @@ func GetSiteBasic() model.BasicConfig {
 		log.Println("GetSiteBasic MySQL Error:", err)
 		c.Tip = model.DefaultTipConfig()
 		c.Notice = model.DefaultNoticeConfig()
+		c.TVBox = model.DefaultTVBoxConfig()
 		return c
 	}
 	c = model.BasicConfig{
@@ -130,6 +135,7 @@ func GetSiteBasic() model.BasicConfig {
 		PrivateAccess: rec.PrivateAccess, ProvideKey: rec.ProvideKey,
 		Tip:    model.DecodeTipJSON(rec.TipJSON),
 		Notice: model.DecodeNoticeJSON(rec.NoticeJSON),
+		TVBox:  model.DecodeTVBoxJSON(rec.TVBoxJSON),
 	}
 	// 回填缓存
 	if db.Rdb != nil {

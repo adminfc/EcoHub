@@ -92,6 +92,22 @@ func (s *ManageService) UpdateSiteNoticeConfig(notice model.NoticeConfig) error 
 	return repository.SaveSiteBasic(curr)
 }
 
+// GetSiteTVBoxConfig 获取 TVBox 一键配置输出定制
+func (s *ManageService) GetSiteTVBoxConfig() model.TVBoxConfig {
+	return repository.GetSiteBasic().TVBox
+}
+
+// UpdateSiteTVBoxConfig 更新 TVBox 一键配置输出定制，并清理已缓存的 TVBox 配置
+func (s *ManageService) UpdateSiteTVBoxConfig(tvbox model.TVBoxConfig) error {
+	curr := repository.GetSiteBasic()
+	curr.TVBox = tvbox
+	if err := repository.SaveSiteBasic(curr); err != nil {
+		return err
+	}
+	clearProvideNetworkConfigCache()
+	return nil
+}
+
 // GetBanners 获取轮播组件信息（实时叠加片库状态与海报源）
 func (s *ManageService) GetBanners() model.Banners {
 	return OverlayBannerLiveRemarks(repository.GetBanners())

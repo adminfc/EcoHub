@@ -75,7 +75,7 @@ export default function SiteGuard({
 
   // 页面类型判断
   const isManagePage = pathname.startsWith("/manage");
-  const isLoginPage = pathname === "/login";
+  const isLoginPage = pathname === "/login" || pathname === "/unlock";
 
   // 私有化模式拦截检测
   const isPrivateRequired = Boolean(config?.privateAccess);
@@ -84,7 +84,7 @@ export default function SiteGuard({
     if (!loading && isPrivateRequired && !hasAuth && !isManagePage && !isLoginPage) {
       const query = typeof window !== "undefined" ? window.location.search : "";
       const target = encodeURIComponent(pathname + query);
-      router.replace(`/login?redirect=${target}`);
+      router.replace(`/unlock?redirect=${target}`);
     }
   }, [loading, isPrivateRequired, hasAuth, isManagePage, isLoginPage, pathname, router]);
 

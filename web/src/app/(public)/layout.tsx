@@ -2,7 +2,11 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import PublicLayoutView from "./layout-view";
 import { serverGet } from "@/lib/server-api";
-import type { SiteConfig } from "@/components/common/SiteGuard";
+
+interface ViewStatus {
+  privateAccess: boolean;
+  unlocked: boolean;
+}
 
 interface NavItem {
   id: string;
@@ -14,23 +18,24 @@ async function verifyPublicAccess() {
   const hasAuth = cookieStore.has("ecohub_auth_token");
   if (hasAuth) return;
 
-  let isPrivate = false;
+  let locked = false;
   try {
-    const resp = await serverGet<SiteConfig>("/config/basic");
-    if (resp.code === 0 && resp.data?.privateAccess) {
-      isPrivate = true;
+    // 私有化时校验观看密码凭证（密码修改后旧凭证失效）
+    const resp = await serverGet<ViewStatus>("/view/status");
+    if (resp.code === 0 && resp.data?.privateAccess && !resp.data.unlocked) {
+      locked = true;
     }
   } catch {
     // 忽略请求异常
   }
 
-  if (isPrivate) {
+  if (locked) {
     const headerStore = await headers();
     const currentPath = headerStore.get("x-current-path");
     if (currentPath && currentPath.startsWith("/") && !currentPath.startsWith("//")) {
-      redirect(`/login?redirect=${encodeURIComponent(currentPath)}`);
+      redirect(`/unlock?redirect=${encodeURIComponent(currentPath)}`);
     } else {
-      redirect("/login");
+      redirect("/unlock");
     }
   }
 }

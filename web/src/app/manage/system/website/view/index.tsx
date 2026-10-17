@@ -3,6 +3,7 @@
 import React, { Suspense, useCallback } from "react";
 import {
   BellOutlined,
+  DesktopOutlined,
   HeartOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
@@ -13,19 +14,22 @@ import BasicConfigCard from "./basic-config-card";
 import AccessConfigCard from "./access-config-card";
 import TipConfigCard from "./tip-config-card";
 import NoticeConfigCard from "./notice-config-card";
+import TVBoxConfigCard from "./tvbox-config-card";
 import styles from "./index.module.less";
 
-type WebsiteTab = "basic" | "tip" | "notice";
+type WebsiteTab = "basic" | "tip" | "notice" | "tvbox";
 
 const WEBSITE_TABS: { key: WebsiteTab; label: string; icon: React.ReactNode }[] = [
   { key: "basic", label: "基本信息", icon: <SettingOutlined /> },
   { key: "tip", label: "赞赏支持", icon: <HeartOutlined /> },
   { key: "notice", label: "站点公告", icon: <BellOutlined /> },
+  { key: "tvbox", label: "TVBox 订阅", icon: <DesktopOutlined /> },
 ];
 
 function normalizeWebsiteTab(raw: string | null): WebsiteTab {
   if (raw === "tip") return "tip";
   if (raw === "notice") return "notice";
+  if (raw === "tvbox") return "tvbox";
   return "basic";
 }
 
@@ -38,7 +42,7 @@ function SiteConfigBody({ embedded = false }: SiteConfigPageViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentTab = normalizeWebsiteTab(searchParams.get("tab"));
-  const { canWrite } = useManagePermission();
+  const { canWrite, isAdmin } = useManagePermission();
 
   const replaceTabQuery = useCallback(
     (tab: WebsiteTab) => {
@@ -62,6 +66,12 @@ function SiteConfigBody({ embedded = false }: SiteConfigPageViewProps) {
         return (
           <div className={styles.tabPaneScrollable}>
             <NoticeConfigCard canWrite={canWrite} />
+          </div>
+        );
+      case "tvbox":
+        return (
+          <div className={styles.tabPaneScrollable}>
+            <TVBoxConfigCard canWrite={canWrite && isAdmin} />
           </div>
         );
       case "basic":

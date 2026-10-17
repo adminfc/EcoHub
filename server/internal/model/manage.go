@@ -59,6 +59,7 @@ type BasicConfig struct {
 	ProvideKey    string       `json:"provideKey"`    // TVBox/订阅专属访问密钥
 	Tip           TipConfig    `json:"tip"`           // 前台赞赏
 	Notice        NoticeConfig `json:"notice"`        // 开屏公告
+	TVBox         TVBoxConfig  `json:"tvbox"`         // TVBox 一键配置输出定制
 }
 
 // AccessConfig 网站访问控制配置（运行状态/维护提示/私有化/订阅密钥）
@@ -118,6 +119,7 @@ type SiteConfigRecord struct {
 	ProvideKey    string `gorm:"size:64;column:provide_key"`
 	TipJSON       string `gorm:"type:text;column:tip_json"`    // TipConfig JSON
 	NoticeJSON    string `gorm:"type:text;column:notice_json"` // NoticeConfig JSON
+	TVBoxJSON     string `gorm:"type:text;column:tvbox_json"`  // TVBoxConfig JSON
 }
 
 func (SiteConfigRecord) TableName() string {

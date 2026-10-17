@@ -237,6 +237,14 @@ func (h *ProvideHandler) HandleProvide(c *gin.Context) {
 	}
 }
 
+// resolveProvideAssetURL 将以 / 开头的站内路径（如 /upload/xxx.png）补全为当前访问域名下的绝对地址
+func resolveProvideAssetURL(baseURL, raw string) string {
+	if strings.HasPrefix(raw, "/") && !strings.HasPrefix(raw, "//") {
+		return baseURL + raw
+	}
+	return raw
+}
+
 // HandleProvideConfig 提供给 TVBox/影视仓 的一键网络配置 (config.json)。
 // 对应路由：
 //   - GET /api/provide/tvbox (推荐：语义明确的标准端点)
@@ -270,10 +278,11 @@ func (h *ProvideHandler) HandleProvideConfig(c *gin.Context) {
 		baseVodApi = apiPath + "?key=" + url.QueryEscape(key)
 	}
 
+	tvbox := repository.GetSiteBasic().TVBox
 	sites := []gin.H{
 		{
 			"key":         "EcoHub",
-			"name":        "🌟 EcoHub 私人影视库全量",
+			"name":        tvbox.SiteName,
 			"type":        1,
 			"api":         baseVodApi,
 			"searchable":  1,
@@ -283,6 +292,9 @@ func (h *ProvideHandler) HandleProvideConfig(c *gin.Context) {
 	}
 
 	for _, source := range repository.GetCollectSourceList() {
+		if tvbox.HideSources {
+			break
+		}
 		if !source.State {
 			continue
 		}
@@ -292,7 +304,7 @@ func (h *ProvideHandler) HandleProvideConfig(c *gin.Context) {
 		}
 		sites = append(sites, gin.H{
 			"key":         "source_" + source.Id,
-			"name":        "📡 " + source.Name,
+			"name":        tvbox.FormatSourceName(source.Name),
 			"type":        1,
 			"api":         sourceApi,
 			"searchable":  1,
@@ -302,9 +314,9 @@ func (h *ProvideHandler) HandleProvideConfig(c *gin.Context) {
 	}
 
 	configJson := gin.H{
-		"spider":    "",
-		"wallpaper": "",
-		"logo":      "",
+		"spider":    resolveProvideAssetURL(baseURL, tvbox.Spider),
+		"wallpaper": resolveProvideAssetURL(baseURL, tvbox.Wallpaper),
+		"logo":      resolveProvideAssetURL(baseURL, tvbox.Logo),
 		"sites":     sites,
 	}
 	if db.Rdb != nil {

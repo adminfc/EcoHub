@@ -44,7 +44,13 @@ func PrivateAccessGuard() gin.HandlerFunc {
 			return
 		}
 
-		// 3. 检查 Web 端用户 Token
+		// 3. 已在网页端输入过观看密码（Cookie 凭证随密码变更自动失效）
+		if viewPass, _ := c.Cookie(config.ViewPassCookieName); utils.VerifyViewPassToken(viewPass, expectedKey) {
+			c.Next()
+			return
+		}
+
+		// 4. 检查 Web 端用户 Token
 		authToken, _ := c.Cookie(config.AuthCookieName)
 		if authToken == "" {
 			authHeader := strings.TrimSpace(c.GetHeader("Authorization"))
@@ -68,8 +74,8 @@ func PrivateAccessGuard() gin.HandlerFunc {
 			}
 		}
 
-		// 4. 既未提供有效 key，又无有效登录态，明确提示私有化
-		dto.CustomResult(http.StatusUnauthorized, dto.FAILED, gin.H{"private_access": true}, "该站点已开启私有化访问，请登录账号或输入订阅密钥", c)
+		// 5. 既未提供有效 key，又无有效登录态，明确提示私有化
+		dto.CustomResult(http.StatusUnauthorized, dto.FAILED, gin.H{"private_access": true}, "该站点已开启私有化访问，请输入观看密码或登录账号", c)
 		c.Abort()
 	}
 }

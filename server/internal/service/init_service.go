@@ -114,6 +114,7 @@ func defaultBasicConfig() model.BasicConfig {
 		Hint:     "网站升级中, 暂时无法访问 !!!",
 		Tip:      model.DefaultTipConfig(),
 		Notice:   model.DefaultNoticeConfig(),
+		TVBox:    model.DefaultTVBoxConfig(),
 	}
 }
 

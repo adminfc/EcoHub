@@ -21,7 +21,14 @@ instance.interceptors.response.use(
 
     if (error.response?.status === 401) {
       message.error(error.response.data?.msg || "请先登录");
-      window.location.href = "/login";
+      const isManagePage = window.location.pathname.startsWith("/manage");
+      if (error.response.data?.data?.private_access && !isManagePage) {
+        // 前台私有化拦截（如观看密码已被修改）：回到输入观看密码页
+        const current = window.location.pathname + window.location.search;
+        window.location.href = `/unlock?redirect=${encodeURIComponent(current)}`;
+      } else {
+        window.location.href = "/login";
+      }
     } else if (error.response?.status === 403) {
       message.error(error.response.data?.msg || "无访问权限");
     } else {

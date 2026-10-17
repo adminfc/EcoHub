@@ -195,8 +195,10 @@ const (
 )
 
 const (
-	AuthUserClaims     = "UserClaims"
-	AuthCookieName     = "ecohub_auth_token"
+	AuthUserClaims = "UserClaims"
+	AuthCookieName = "ecohub_auth_token"
+	// ViewPassCookieName 私有化模式下访客输入观看密码后的凭证 Cookie
+	ViewPassCookieName = "ecohub_view_pass"
 	DefaultAdminUser   = "admin"
 	DefaultAdminPass   = "admin"
 	DefaultVisitorUser = "guest"
@@ -238,7 +240,14 @@ const (
 const (
 	Issuer           = "EcoHub"
 	AuthTokenExpires = 10 * 24 // 单位 h
-	UserTokenKey     = RedisKeyPrefix + ":User:Token:%d"
+	// ViewPassCookieMaxAge 观看密码凭证有效期（秒）；修改密码会让凭证提前失效
+	ViewPassCookieMaxAge = 400 * 24 * 3600
+	// ViewUnlockMaxFails / ViewUnlockFailWindow 同一 IP 在窗口期内允许的观看密码错误次数
+	ViewUnlockMaxFails   = 10
+	ViewUnlockFailWindow = 10 * time.Minute
+	// ViewUnlockFailKey 观看密码错误计数 Redis key 前缀
+	ViewUnlockFailKey = RedisKeyPrefix + ":ViewUnlock:Fail"
+	UserTokenKey      = RedisKeyPrefix + ":User:Token:%d"
 )
 
 func isTestEnv() bool {

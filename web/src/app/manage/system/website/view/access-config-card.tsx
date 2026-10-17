@@ -111,7 +111,7 @@ export default function AccessConfigCard({ canWrite }: AccessConfigCardProps) {
   const handleSave = async () => {
     if (!canWrite) return;
     if (draft.privateAccess && !draft.provideKey.trim()) {
-      message.error("开启私有化访问时，订阅密钥不能为空");
+      message.error("开启私有化访问时，观看密码不能为空");
       return;
     }
     setSaving(true);
@@ -225,7 +225,7 @@ export default function AccessConfigCard({ canWrite }: AccessConfigCardProps) {
             <Flex vertical gap={4}>
               <Typography.Text strong>私有化访问</Typography.Text>
               <Typography.Text type="secondary">
-                开启后，未登录访客将强制重定向至登录页
+                开启后，访客需输入观看密码（或登录账号）才能观看，输入一次后该设备长期有效
               </Typography.Text>
             </Flex>
             <Switch
@@ -250,7 +250,7 @@ export default function AccessConfigCard({ canWrite }: AccessConfigCardProps) {
             <div className={styles.field}>
               <Flex justify="space-between" align="baseline">
                 <Typography.Text strong>
-                  订阅密钥{" "}
+                  观看密码 / 订阅密钥{" "}
                   <span style={{ color: "var(--ant-color-error)" }}>*</span>
                 </Typography.Text>
                 <Typography.Text type="secondary">
@@ -261,7 +261,7 @@ export default function AccessConfigCard({ canWrite }: AccessConfigCardProps) {
                 <Input
                   disabled={!isEditing || !canWrite}
                   maxLength={MAX_PROVIDE_KEY_LEN}
-                  placeholder="必填，请输入订阅密钥，例如 mysecret888"
+                  placeholder="必填，请输入观看密码，例如 mysecret888"
                   status={
                     isEditing && !currentValues.provideKey.trim()
                       ? "error"
@@ -289,7 +289,7 @@ export default function AccessConfigCard({ canWrite }: AccessConfigCardProps) {
                 </Button>
               </Space.Compact>
               <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                开启私有化后必填。客户端及 TVBox 订阅地址均需在末尾追加 ?key=您的密钥（可在右上角订阅地址直接复制）。
+                开启私有化后必填。网页访客输入此密码即可观看；TVBox/影视仓 订阅地址需在末尾追加 ?key=此密码（可在右上角订阅地址直接复制）。修改后所有已输入密码的设备和旧订阅都需要使用新密码。
               </Typography.Text>
             </div>
           )}

@@ -37,6 +37,10 @@ func SetupRouter() *gin.Engine {
 	api.POST(`/login`, handler.UserHd.Login)
 	api.POST(`/logout`, middleware.AuthToken(), handler.UserHd.Logout)
 
+	// 私有化模式下的观看密码（即订阅密钥）校验，网页端输入一次后长期有效
+	api.GET(`/view/status`, handler.ViewHd.Status)
+	api.POST(`/view/unlock`, handler.ViewHd.Unlock)
+
 	// 前台业务接口，开启私有化模式时需携带有效登录态
 	frontApi := api.Group("/", middleware.PrivateAccessGuard())
 	{
@@ -79,6 +83,10 @@ func SetupRouter() *gin.Engine {
 
 			sysConfig.GET(`/notice`, handler.ManageHd.SiteNoticeConfig)
 			sysConfig.POST(`/notice/update`, handler.ManageHd.UpdateSiteNotice)
+
+			// TVBox 一键配置输出定制（spider jar 会在客户端执行，仅超级管理员可改）
+			sysConfig.GET(`/tvbox`, handler.ManageHd.SiteTVBoxConfig)
+			sysConfig.POST(`/tvbox/update`, middleware.AdminAccess(), handler.ManageHd.UpdateSiteTVBox)
 
 			// 通知配置（仅超级管理员）
 			sysConfig.GET(`/notify`, middleware.AdminAccess(), handler.NotifyHd.GetNotifyConfig)
