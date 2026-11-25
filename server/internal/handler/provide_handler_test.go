@@ -700,3 +700,51 @@ func TestHandleProvide_SingleFlight_ConcurrentDataRace(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestHandleProvideConfig_Lives(t *testing.T) {
+	setupProvideTestDB(t)
+	gin.SetMode(gin.TestMode)
+
+	if err := repository.SaveTVBoxLiveConfig(model.TVBoxLiveConfig{
+		Lives: []model.TVBoxLive{
+			{Enabled: true, Name: "外部直播", URL: "/static/live.m3u", EPG: "https://epg.example/?ch={name}&date={date}", UA: "okhttp/3.15"},
+			{Enabled: false, Name: "已停用", URL: "https://a.b/off.txt"},
+		},
+		Custom: model.TVBoxCustomChannels{Enabled: true, Name: "自建频道", Content: "央视,#genre#\nCCTV1,http://x/1.m3u8"},
+	}); err != nil {
+		t.Fatalf("save live config: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest(http.MethodGet, "/api/provide/tvbox?key=abc", nil)
+	c.Request.Host = "tv.example.com"
+	ProvideHd.HandleProvideConfig(c)
+
+	var res struct {
+		Lives []map[string]any `json:"lives"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &res); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if len(res.Lives) != 2 {
+		t.Fatalf("expected 2 lives (custom + enabled external), got %+v", res.Lives)
+	}
+	if res.Lives[0]["name"] != "自建频道" || !strings.HasSuffix(res.Lives[0]["url"].(string), "/api/provide/tvbox/live?key=abc") {
+		t.Fatalf("unexpected custom live: %+v", res.Lives[0])
+	}
+	if res.Lives[1]["url"] != "http://tv.example.com/static/live.m3u" || res.Lives[1]["ua"] != "okhttp/3.15" || res.Lives[1]["type"] != float64(0) {
+		t.Fatalf("unexpected external live: %+v", res.Lives[1])
+	}
+
+	w = httptest.NewRecorder()
+	c, _ = gin.CreateTestContext(w)
+	c.Request, _ = http.NewRequest(http.MethodGet, "/api/provide/tvbox/live", nil)
+	ProvideHd.HandleProvideLiveChannels(c)
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), "CCTV1,http://x/1.m3u8") {
+		t.Fatalf("unexpected channel list response %d: %q", w.Code, w.Body.String())
+	}
+	if !strings.HasPrefix(w.Header().Get("Content-Type"), "text/plain") {
+		t.Fatalf("unexpected content type %q", w.Header().Get("Content-Type"))
+	}
+}

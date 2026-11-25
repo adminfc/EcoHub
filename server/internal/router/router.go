@@ -87,6 +87,9 @@ func SetupRouter() *gin.Engine {
 			// TVBox 一键配置输出定制（spider jar 会在客户端执行，仅超级管理员可改）
 			sysConfig.GET(`/tvbox`, handler.ManageHd.SiteTVBoxConfig)
 			sysConfig.POST(`/tvbox/update`, middleware.AdminAccess(), handler.ManageHd.UpdateSiteTVBox)
+			// TVBox 直播电视频道（与上同为超级管理员可改）
+			sysConfig.GET(`/tvbox/live`, handler.ManageHd.TVBoxLiveConfig)
+			sysConfig.POST(`/tvbox/live/update`, middleware.AdminAccess(), handler.ManageHd.UpdateTVBoxLive)
 
 			// 通知配置（仅超级管理员）
 			sysConfig.GET(`/notify`, middleware.AdminAccess(), handler.NotifyHd.GetNotifyConfig)
@@ -245,6 +248,8 @@ func SetupRouter() *gin.Engine {
 		// 替代方案：第三方 TVBox / 影视仓配置推荐统一使用 /api/provide/tvbox；EcoHub 原生客户端请使用 /api/provide/app。
 		provideRoute.GET(`/config`, handler.ProvideHd.HandleProvideConfig)
 		provideRoute.GET(`/tvbox`, handler.ProvideHd.HandleProvideConfig)
+		// 站内托管的自定义直播频道列表（TXT / M3U），由 /tvbox 的 lives 引用
+		provideRoute.GET(`/tvbox/live`, handler.ProvideHd.HandleProvideLiveChannels)
 		provideRoute.GET(`/app`, handler.ProvideHd.HandleProvideApp)
 	}
 

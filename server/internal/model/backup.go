@@ -9,6 +9,7 @@ type ConfigBackup struct {
 	ExportedAt   string              `json:"exportedAt"`
 	AppVersion   string              `json:"appVersion,omitempty"`
 	Site         *BasicConfig        `json:"site,omitempty"`
+	TVBoxLive    *TVBoxLiveConfig    `json:"tvboxLive,omitempty"` // 随网站配置模块导入导出
 	FilmSources  []FilmSource        `json:"filmSources,omitempty"`
 	CronTasks    []FilmCollectTask   `json:"cronTasks,omitempty"`
 	Banners      Banners             `json:"banners,omitempty"`

@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -319,6 +320,9 @@ func (h *ProvideHandler) HandleProvideConfig(c *gin.Context) {
 		"logo":      resolveProvideAssetURL(baseURL, tvbox.Logo),
 		"sites":     sites,
 	}
+	if lives := buildProvideLives(baseURL, key, repository.GetTVBoxLiveConfig()); len(lives) > 0 {
+		configJson["lives"] = lives
+	}
 	if db.Rdb != nil {
 		if data, err := json.Marshal(configJson); err == nil {
 			db.Rdb.Set(db.Cxt, cacheKey, string(data), time.Minute*30)
@@ -326,6 +330,52 @@ func (h *ProvideHandler) HandleProvideConfig(c *gin.Context) {
 	}
 
 	c.JSON(200, configJson)
+}
+
+// buildProvideLives 生成 TVBox config.json 的 lives[]（type=0：TXT / M3U 直播源）
+func buildProvideLives(baseURL, key string, live model.TVBoxLiveConfig) []gin.H {
+	lives := make([]gin.H, 0, len(live.Lives)+1)
+	appendLive := func(name, liveURL, epg, logo, ua string) {
+		item := gin.H{"name": name, "type": 0, "url": liveURL}
+		if epg != "" {
+			item["epg"] = resolveProvideAssetURL(baseURL, epg)
+		}
+		if logo != "" {
+			item["logo"] = resolveProvideAssetURL(baseURL, logo)
+		}
+		if ua != "" {
+			item["ua"] = ua
+		}
+		lives = append(lives, item)
+	}
+
+	if live.HasCustomChannels() {
+		customURL := baseURL + "/api/provide/tvbox/live"
+		if key != "" {
+			customURL += "?key=" + url.QueryEscape(key)
+		}
+		c := live.Custom
+		appendLive(c.Name, customURL, c.EPG, c.Logo, c.UA)
+	}
+	for _, l := range live.Lives {
+		if !l.Enabled {
+			continue
+		}
+		appendLive(l.Name, resolveProvideAssetURL(baseURL, l.URL), l.EPG, l.Logo, l.UA)
+	}
+	return lives
+}
+
+// HandleProvideLiveChannels 输出后台维护的自定义直播频道列表（TXT / M3U 原文）
+// 对应路由：GET /api/provide/tvbox/live（与 /tvbox 共用订阅密钥校验）
+func (h *ProvideHandler) HandleProvideLiveChannels(c *gin.Context) {
+	live := repository.GetTVBoxLiveConfig()
+	if !live.HasCustomChannels() {
+		c.String(http.StatusNotFound, "未配置自定义直播频道")
+		return
+	}
+	c.Header("Cache-Control", "no-cache")
+	c.Data(http.StatusOK, "text/plain; charset=utf-8", []byte(live.Custom.Content+"\n"))
 }
 
 // HandleProvideApp 提供给 EcoHub 官方原生客户端（OHOS / Android）的软件源描述配置

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -102,6 +103,26 @@ func (s *ManageService) UpdateSiteTVBoxConfig(tvbox model.TVBoxConfig) error {
 	curr := repository.GetSiteBasic()
 	curr.TVBox = tvbox
 	if err := repository.SaveSiteBasic(curr); err != nil {
+		return err
+	}
+	clearProvideNetworkConfigCache()
+	return nil
+}
+
+// GetTVBoxLiveConfig 获取 TVBox 直播电视频道配置
+func (s *ManageService) GetTVBoxLiveConfig() model.TVBoxLiveConfig {
+	return repository.GetTVBoxLiveConfig()
+}
+
+// UpdateTVBoxLiveConfig 更新 TVBox 直播电视频道配置，并清理已缓存的 TVBox 配置
+func (s *ManageService) UpdateTVBoxLiveConfig(live model.TVBoxLiveConfig) error {
+	if len(live.Custom.Content) > model.MaxTVBoxChannelsBytes {
+		return fmt.Errorf("自定义频道列表超过 %d KB 上限", model.MaxTVBoxChannelsBytes/1024)
+	}
+	if len(live.Lives) > model.MaxTVBoxLives {
+		return fmt.Errorf("直播源最多 %d 条", model.MaxTVBoxLives)
+	}
+	if err := repository.SaveTVBoxLiveConfig(live); err != nil {
 		return err
 	}
 	clearProvideNetworkConfigCache()

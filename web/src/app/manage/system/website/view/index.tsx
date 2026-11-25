@@ -15,6 +15,7 @@ import AccessConfigCard from "./access-config-card";
 import TipConfigCard from "./tip-config-card";
 import NoticeConfigCard from "./notice-config-card";
 import TVBoxConfigCard from "./tvbox-config-card";
+import TVBoxLiveCard from "./tvbox-live-card";
 import styles from "./index.module.less";
 
 type WebsiteTab = "basic" | "tip" | "notice" | "tvbox";
@@ -72,6 +73,7 @@ function SiteConfigBody({ embedded = false }: SiteConfigPageViewProps) {
         return (
           <div className={styles.tabPaneScrollable}>
             <TVBoxConfigCard canWrite={canWrite && isAdmin} />
+            <TVBoxLiveCard canWrite={canWrite && isAdmin} />
           </div>
         );
       case "basic":

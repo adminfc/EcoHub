@@ -219,6 +219,8 @@ const (
 	BannerConfigKey = RedisKeyPrefix + ":Config:BannerConfig"
 	// ProxyConfigKey 采集网络代理配置缓存
 	ProxyConfigKey = RedisKeyPrefix + ":Config:Proxy"
+	// TVBoxLiveConfigKey TVBox 直播电视频道配置缓存
+	TVBoxLiveConfigKey = RedisKeyPrefix + ":Config:TVBoxLive"
 
 	// DefaultUpdateSpec 每30分钟执行一次
 	DefaultUpdateSpec = "0 */30 * * * ?"

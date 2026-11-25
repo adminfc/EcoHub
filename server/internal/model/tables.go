@@ -30,6 +30,7 @@ const (
 	TableTMDBConfig         = "tmdb_config"
 	TableBannerConfig       = "banner_config"
 	TableProxyConfig        = "proxy_config"
+	TableTVBoxLiveConfig    = "tvbox_live_config"
 	TableFilmSource         = "film_sources"
 )
 
@@ -63,4 +64,5 @@ var AllModels = []any{
 	&TMDBConfigRecord{},
 	&BannerConfigRecord{},
 	&ProxyConfigRecord{},
+	&TVBoxLiveConfigRecord{},
 }

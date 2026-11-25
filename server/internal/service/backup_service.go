@@ -33,6 +33,7 @@ func (s *BackupService) ExportConfig() model.ConfigBackup {
 	}
 
 	site := repository.GetSiteBasic()
+	tvboxLive := repository.GetTVBoxLiveConfig()
 	notifyCfg := repository.GetNotifyConfig()
 
 	rules, _ := repository.ListAllMappingRules(repository.MappingRuleQuery{})
@@ -52,6 +53,7 @@ func (s *BackupService) ExportConfig() model.ConfigBackup {
 		ExportedAt:   time.Now().Format(time.RFC3339),
 		AppVersion:   config.Version,
 		Site:         &site,
+		TVBoxLive:    &tvboxLive,
 		FilmSources:  sources,
 		CronTasks:    tasks,
 		Banners:      banners,
@@ -82,6 +84,13 @@ func (s *BackupService) ImportConfig(req model.ConfigBackupImportRequest) error 
 		if err := repository.SaveSiteBasic(*backup.Site); err != nil {
 			return fmt.Errorf("导入网站配置失败: %w", err)
 		}
+		// 旧版备份没有直播配置，此时保留当前配置
+		if backup.TVBoxLive != nil {
+			if err := repository.SaveTVBoxLiveConfig(*backup.TVBoxLive); err != nil {
+				return fmt.Errorf("导入 TVBox 直播配置失败: %w", err)
+			}
+		}
+		clearProvideNetworkConfigCache()
 	}
 
 	if req.Modules.FilmSources {
